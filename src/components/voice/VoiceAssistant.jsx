@@ -5,7 +5,12 @@ import './VoiceAssistant.css';
 
 import { getApiUrl } from '../../config/apiConfig';
 
-export const VoiceAssistant = ({ driverId, preferredLanguage = 'hi-IN', onAssistantAction }) => {
+export const VoiceAssistant = ({ 
+  driverId, 
+  preferredLanguage = 'hi-IN', 
+  onAssistantAction, 
+  currentRisk = null 
+}) => {
   const [status, setStatus] = useState('idle'); // idle, listening, processing, speaking
   const [transcript, setTranscript] = useState('');
   const [reply, setReply] = useState('');
@@ -25,6 +30,37 @@ export const VoiceAssistant = ({ driverId, preferredLanguage = 'hi-IN', onAssist
     let action = null;
     let payload = {};
     let englishReply = "I am monitoring your corridor. Tell me your destination or tap a quick command.";
+
+    // 1. Direct Risk Telemetry Explanation Request
+    if (lower.includes("risk") || lower.includes("telemetry") || lower.includes("status") || lower.includes("khatra") || lower.includes("explain") || lower.includes("delay") || lower.includes("score")) {
+      const score = Math.round(currentRisk?.risk_score || 72);
+      const isHigh = currentRisk?.risk_level === 'High' || score >= 65;
+      const delay = currentRisk?.predicted_delay_hours || 4.5;
+      const factor = (currentRisk?.risk_drivers && currentRisk?.risk_drivers.length > 0)
+        ? currentRisk.risk_drivers[0].replace(/^[🚨🌧️⚠️✅🛣️📍\s]+/, '').split('(')[0].trim()
+        : "active mountain landslide sector";
+
+      action = "EXPLAIN_RISK";
+      payload = currentRisk;
+
+      englishReply = `AI Risk Telemetry: Current risk score is ${score} out of 100, which is ${isHigh ? 'High Risk' : 'Safe'}. Estimated delay is ${delay} hours. Key risk factor: ${factor}.`;
+
+      const langCode = lang.split('-')[0].toLowerCase();
+      let finalReply = englishReply;
+
+      if (langCode === 'hi') {
+        const riskHi = isHigh ? "उच्च खतरा" : "सुरक्षित";
+        finalReply = `एआई जोखिम टेलीमेट्री: वर्तमान जोखिम स्कोर ${score} है, जो ${riskHi} है। अनुमानित देरी ${delay} घंटे है। मुख्य कारक: ${factor}।`;
+      } else if (langCode === 'te') {
+        const riskTe = isHigh ? "అధిక ప్రమాదం" : "సురక్షితం";
+        finalReply = `ఏఐ రిస్క్ టెలిమెట్రీ: ప్రస్తుత రిస్క్ స్కోర్ ${score}, ఇది ${riskTe}. అంచనా వేసిన ఆలస్యం ${delay} గంటలు. ప్రధాన కారణం: ${factor}.`;
+      } else if (langCode === 'bn') {
+        const riskBn = isHigh ? "উচ্চ বিপদ" : "নিরাপদ";
+        finalReply = `এআই ঝুঁকি টেলিমেট্রি: বর্তমান ঝুঁকি স্কোর ${score}, যা ${riskBn}। আনুমানিক বিলম্ব ${delay} ঘণ্টা। মূল কারণ: ${factor}।`;
+      }
+
+      return { action, payload, replyText: finalReply };
+    }
 
     // North-East city detection
     const cities = [
@@ -222,6 +258,13 @@ export const VoiceAssistant = ({ driverId, preferredLanguage = 'hi-IN', onAssist
       {/* Instant Quick Action Chips for live demo and phone testing */}
       <div className="va-quick-chips">
         <span className="va-quick-title">Quick Commands:</span>
+        <button 
+          className="va-chip va-chip-highlight" 
+          onClick={() => handleQuickCommand("Explain risk telemetry")}
+          title="Voice explanation of current AI risk telemetry"
+        >
+          📊 Explain Risk
+        </button>
         <button 
           className="va-chip" 
           onClick={() => handleQuickCommand("Guwahati to Gangtok")}

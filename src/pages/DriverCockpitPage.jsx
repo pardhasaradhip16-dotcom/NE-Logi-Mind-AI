@@ -18,10 +18,12 @@ import {
   Activity,
   ChevronRight,
   ShieldCheck,
-  Send
+  Send,
+  Volume2
 } from 'lucide-react';
 import { DRIVER_PROFILES } from '../data/driversData';
 import { VoiceAssistant } from '../components/voice/VoiceAssistant';
+import { speakText, unlockAudio } from '../services/voiceService';
 import { getApiUrl } from '../config/apiConfig';
 import './DriverCockpitPage.css';
 export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
@@ -76,6 +78,105 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
     }
   }, [driver.id, driver.assignedShipmentId, heading, waypointIdx]);
 
+  const [isDetourActive, setIsDetourActive] = useState(false);
+
+  // Dynamic telemetry engine based on driver location and corridor topography
+  const computeDynamicTelemetry = useCallback((driverObj, currentWpIdx, totalWps, isDetour = false) => {
+    const ratio = totalWps > 1 ? currentWpIdx / (totalWps - 1) : 0.5;
+
+    if (isDetour) {
+      return {
+        risk_score: 26,
+        risk_level: "Low",
+        predicted_delay_hours: 0.9,
+        delay_probability: 0.18,
+        estimated_duration_hours: 18.2,
+        reliability_score: 92,
+        risk_drivers: [
+          "AI Autonomous Detour Active: Bypassing mountain hazard zone",
+          "Wide valley bypass corridor with clear asphalt surface",
+          "Precipitation: 8 mm/h (Optimal surface traction)"
+        ]
+      };
+    }
+
+    // Mountain Chokepoint Sector (between 30% and 72% of route)
+    const isMountainHotspot = ratio >= 0.30 && ratio <= 0.72;
+
+    if (isMountainHotspot) {
+      const variation = Math.round(Math.sin(currentWpIdx * 1.8) * 5);
+      const riskScore = Math.min(89, Math.max(71, 79 + variation));
+      const delayHours = parseFloat((4.4 + Math.abs(variation) * 0.35).toFixed(1));
+
+      return {
+        risk_score: riskScore,
+        risk_level: "High",
+        predicted_delay_hours: delayHours,
+        delay_probability: 0.84,
+        estimated_duration_hours: 26.5,
+        reliability_score: 36,
+        risk_drivers: [
+          "🚨 Active Landslide Vulnerability Sector (Mountain Chokepoint)",
+          `🌧️ High monsoon precipitation (62 mm/h) on steep pass`,
+          `⚠️ Axle load (${driverObj.vehicle.capacityTons}T) on 14% mountain gradient`
+        ]
+      };
+    } else {
+      const distRemaining = Math.max(12, Math.round(driverObj.route.totalDistanceKm * (1 - ratio)));
+      const riskScore = Math.max(24, Math.min(42, Math.round(28 + (ratio * 12))));
+      const delayHours = parseFloat((0.8 + ratio * 0.5).toFixed(1));
+
+      return {
+        risk_score: riskScore,
+        risk_level: riskScore >= 40 ? "Medium" : "Low",
+        predicted_delay_hours: delayHours,
+        delay_probability: 0.28,
+        estimated_duration_hours: Math.max(1, Math.round(distRemaining / 45)),
+        reliability_score: 85,
+        risk_drivers: [
+          "✅ Approach highway open with active patrol",
+          "🛣️ Road surface dry to light wet (Safe transit)",
+          `📍 Approaching destination: ${distRemaining} km remaining`
+        ]
+      };
+    }
+  }, []);
+
+  // Voice Assistant explains live risk telemetry aloud in driver's native language
+  const explainCurrentTelemetry = useCallback((data) => {
+    const activeData = data || prediction || computeDynamicTelemetry(driver, waypointIdx, driver.route.waypoints.length, isDetourActive);
+    if (!activeData) return;
+
+    unlockAudio();
+    const score = Math.round(activeData.risk_score);
+    const delay = activeData.predicted_delay_hours;
+    const isHigh = activeData.risk_level === 'High' || score >= 65;
+    const primaryFactor = (activeData.risk_drivers && activeData.risk_drivers.length > 0)
+      ? activeData.risk_drivers[0].replace(/^[🚨🌧️⚠️✅🛣️📍\s]+/, '').split('(')[0].trim()
+      : "mountain terrain and rainfall";
+
+    const targetLang = driver.preferredLanguage || 'en-IN';
+    const langCode = targetLang.split('-')[0].toLowerCase();
+
+    let spokenText = "";
+    if (langCode === 'hi') {
+      const riskWord = isHigh ? "उच्च खतरा" : "सुरक्षित";
+      spokenText = `एआई जोखिम रिपोर्ट: वर्तमान जोखिम स्कोर ${score} है, जो ${riskWord} दर्शाता है। अनुमानित देरी ${delay} घंटे है। मुख्य खतरा: ${primaryFactor}।`;
+    } else if (langCode === 'te') {
+      const riskWord = isHigh ? "అధిక ప్రమాదం" : "సురక్షితం";
+      spokenText = `ఏఐ రిస్క్ నివేదిక: ప్రస్తుత రిస్క్ స్కోర్ ${score}, ఇది ${riskWord}. అంచనా వేసిన ఆలస్యం ${delay} గంటలు. ప్రధాన కారణం: ${primaryFactor}.`;
+    } else if (langCode === 'bn') {
+      const riskWord = isHigh ? "উচ্চ বিপদ" : "নিরাপদ";
+      spokenText = `এআই ঝুঁকি রিপোর্ট: বর্তমান ঝুঁকি স্কোর ${score}, যা ${riskWord}। আনুমানিক বিলম্ব ${delay} ঘণ্টা। মূল কারণ: ${primaryFactor}।`;
+    } else {
+      const riskWord = isHigh ? "high risk condition" : "safe road condition";
+      spokenText = `AI Risk Telemetry: Current corridor score is ${score} out of 100, indicating ${riskWord}. Estimated delay is ${delay} hours due to ${primaryFactor}.`;
+    }
+
+    speakText(spokenText, targetLang);
+    setActiveAlert(spokenText);
+  }, [driver, prediction, waypointIdx, isDetourActive, computeDynamicTelemetry]);
+
   // Fetch ML predictions for this driver's corridor
   const fetchDriverPrediction = useCallback(async (customOrigin, customDest, customDistance, speakResult = false) => {
     const originCity = customOrigin || driver.route.originCity;
@@ -83,6 +184,9 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
     const distKm = customDistance || driver.route.totalDistanceKm;
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
       const payload = {
         origin: originCity,
         destination: destCity,
@@ -96,7 +200,7 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
         landslide_risk: driver.route.roadCondition.toLowerCase().includes("poor") ? 0.65 : 0.20,
         road_blockage: 0,
         route_accessibility_score: 55.0,
-        expected_delivery_hours: Math.round(distKm / 45), // Rough estimate: 45 km/h avg
+        expected_delivery_hours: Math.round(distKm / 45),
         traffic_level: "medium",
         departure_hour: 8
       };
@@ -104,80 +208,29 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
       const res = await fetch(getApiUrl("/api/predict"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const data = await res.json();
         setPrediction(data);
-        
         if (speakResult) {
-            // Give Voice Assistant time to finish the first sentence before speaking the telemetry
-            setTimeout(async () => {
-               try {
-                   const primaryFactor = (data.risk_drivers && data.risk_drivers.length > 0)
-                       ? data.risk_drivers[0].split('(')[0].trim()
-                       : "";
-                   
-                   const targetLang = driver.preferredLanguage || 'en-IN';
-                   const voiceRes = await fetch(getApiUrl("/api/assistant/telemetry-voice"), {
-                       method: "POST",
-                       headers: { "Content-Type": "application/json" },
-                       body: JSON.stringify({
-                           risk_score: data.risk_score,
-                           risk_level: data.risk_level || "Medium",
-                           predicted_delay_hours: data.predicted_delay_hours || 0,
-                           primary_factor: primaryFactor,
-                           language: targetLang
-                       })
-                   });
-
-                   let spokenText = "";
-                   let spokenLang = targetLang;
-
-                   if (voiceRes.ok) {
-                       const voiceData = await voiceRes.json();
-                       spokenText = voiceData.speechText;
-                       spokenLang = voiceData.language || targetLang;
-                   } else {
-                       const langCode = targetLang.split('-')[0].toLowerCase();
-                       if (langCode === 'hi') {
-                           spokenText = `एआई विश्लेषण पूरा हुआ। जोखिम स्कोर ${Math.round(data.risk_score)} है।`;
-                       } else if (langCode === 'te') {
-                           spokenText = `ఏఐ విశ్లేషణ పూర్తయింది. రిస్క్ స్కోర్ ${Math.round(data.risk_score)}.`;
-                       } else if (langCode === 'bn') {
-                           spokenText = `এআই বিশ্লেষণ সম্পন্ন হয়েছে। ঝুঁকি স্কোর ${Math.round(data.risk_score)}।`;
-                       } else {
-                           spokenText = `AI Analysis complete. The risk score is ${Math.round(data.risk_score)}.`;
-                       }
-                   }
-
-                   import('../services/voiceService').then(({ speakText }) => {
-                       speakText(spokenText, spokenLang);
-                   });
-               } catch (e) {
-                   console.warn("Telemetry voice error:", e);
-               }
-            }, 3000);
+          setTimeout(() => explainCurrentTelemetry(data), 1200);
         }
+        return;
       }
-    } catch (err) {
-      console.warn("[DriverCockpit] ML prediction fallback:", err.message);
-      setPrediction({
-        risk_score: 65,
-        risk_level: "High",
-        predicted_delay_hours: 4.8,
-        delay_probability: 0.62,
-        estimated_duration_hours: 24.8,
-        reliability_score: 48,
-        risk_drivers: [
-          `Vehicle class (${driver.vehicle.type}) weight impact on mountain corridor`,
-          `Weather alert: ${driver.route.weather}`,
-          `Surface warning: ${driver.route.roadCondition}`
-        ]
-      });
+    } catch {
+      // Graceful local fallback if backend is offline or sleeping
     }
-  }, [driver]);
+
+    const localData = computeDynamicTelemetry(driver, waypointIdx, driver.route.waypoints.length, isDetourActive);
+    setPrediction(localData);
+    if (speakResult) {
+      setTimeout(() => explainCurrentTelemetry(localData), 1200);
+    }
+  }, [driver, waypointIdx, isDetourActive, computeDynamicTelemetry, explainCurrentTelemetry]);
 
   // Handle Driver Switching
   const handleSelectDriver = (drvId) => {
@@ -295,7 +348,8 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
         setActiveAlert("Error calculating route. Please check network.");
       }
     } else if (action === 'CHANGE_ROUTE') {
-      setActiveAlert("AI has updated your route on the map to avoid upcoming hazards.");
+      setIsDetourActive(true);
+      setActiveAlert("AI Autonomous Detour Active: Rerouted to avoid upcoming landslide hazard.");
       
       if (routePolylineRef.current && mapInstanceRef.current) {
         routePolylineRef.current.setStyle({ color: '#10b981', dashArray: null, weight: 6 });
@@ -309,12 +363,12 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
             routePolylineRef.current.setLatLngs(newWaypoints);
             mapInstanceRef.current.fitBounds(routePolylineRef.current.getBounds(), { padding: [50, 50], animate: false });
             
-            // Calculate a slightly longer distance for the detour
             const newDistKm = Math.round(driver.route.totalDistanceKm * 1.15);
-            // Fetch updated ML prediction and SPEAK IT!
             fetchDriverPrediction(driver.route.originCity, driver.route.destinationCity + " (Detour)", newDistKm, true);
         }
       }
+    } else if (action === 'EXPLAIN_RISK') {
+      explainCurrentTelemetry(prediction);
     }
   };
 
@@ -406,6 +460,10 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
         }
 
         transmitLocation(nextCoord, randomSpeed, true, currIdx);
+
+        // Dynamically compute and update AI risk telemetry as truck advances on corridor
+        const dynamicRisk = computeDynamicTelemetry(driver, currIdx, waypoints.length, isDetourActive);
+        setPrediction(dynamicRisk);
       }, 2500);
     }
   };
@@ -569,12 +627,34 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
               <Activity size={20} className="text-primary" />
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold' }}>AI Risk Telemetry</h3>
             </div>
-            <button 
-              onClick={() => setIsTelemetryCollapsed(!isTelemetryCollapsed)}
-              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#94a3b8', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              {isTelemetryCollapsed ? 'Expand ▾' : 'Collapse ▴'}
-            </button>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button 
+                onClick={() => explainCurrentTelemetry(prediction)}
+                style={{ 
+                  background: '#2563eb', 
+                  border: 'none', 
+                  color: '#ffffff', 
+                  borderRadius: '6px', 
+                  padding: '4px 10px', 
+                  fontSize: '0.78rem', 
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.4)'
+                }}
+                title="Listen to AI voice explanation of risk telemetry"
+              >
+                <Volume2 size={13} /> Explain 🔊
+              </button>
+              <button 
+                onClick={() => setIsTelemetryCollapsed(!isTelemetryCollapsed)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#94a3b8', borderRadius: '6px', padding: '4px 8px', fontSize: '0.75rem', cursor: 'pointer' }}
+              >
+                {isTelemetryCollapsed ? 'Expand ▾' : 'Collapse ▴'}
+              </button>
+            </div>
           </div>
           
           {!isTelemetryCollapsed && (
@@ -612,7 +692,12 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
 
       {/* 3. Floating Voice Assistant (Bottom Right) */}
       <div className="cockpit-voice-widget">
-        <VoiceAssistant driverId={driver.id} preferredLanguage={driver.preferredLanguage} onAssistantAction={handleAssistantAction} />
+        <VoiceAssistant 
+          driverId={driver.id} 
+          preferredLanguage={driver.preferredLanguage} 
+          onAssistantAction={handleAssistantAction}
+          currentRisk={prediction} 
+        />
       </div>
 
       {/* 4. Responsive GPS Controls (Bottom Left) */}
