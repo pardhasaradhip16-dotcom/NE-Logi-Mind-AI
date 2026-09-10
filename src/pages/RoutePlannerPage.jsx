@@ -13,13 +13,17 @@ import {
   Compass, 
   Info 
 } from 'lucide-react';
-import { ROUTE_RECOMMENDATION_DATA } from '../data/mockData';
 import { CorridorMap } from '../components/map/CorridorMap';
 import { getApiUrl } from '../config/apiConfig';
+import { 
+  resolveLocationCoords, 
+  generateAccurateRoutes, 
+  generateRealisticHighwayWaypoints 
+} from '../data/indiaGeoData';
 
 export const RoutePlannerPage = () => {
-  const [fromCity, setFromCity] = useState("Guwahati");
-  const [toCity, setToCity] = useState("Gangtok");
+  const [fromCity, setFromCity] = useState("Hyderabad");
+  const [toCity, setToCity] = useState("Bengaluru");
   
   const [preferences, setPreferences] = useState({
     minimizeTime: true,
@@ -33,23 +37,10 @@ export const RoutePlannerPage = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   
   const [routeData, setRouteData] = useState(null);
-  const [mapData, setMapData] = useState({ corridors: null, cities: null });
+  const [mapData, setMapData] = useState({ corridorList: null, cities: null });
 
   const togglePref = (key) => {
     setPreferences(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const geocodeCity = async (cityName) => {
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&countrycodes=in`);
-      const data = await res.json();
-      if (data && data.length > 0) {
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      }
-    } catch (e) {
-      console.warn("Geocode failed for", cityName);
-    }
-    return null;
   };
 
   const handleFindBestRoute = async (e) => {
@@ -57,93 +48,111 @@ export const RoutePlannerPage = () => {
     setIsSearching(true);
     
     try {
-      const payload = {
-        origin: fromCity,
-        destination: toCity,
-        minimize_time: preferences.minimizeTime,
-        minimize_cost: preferences.minimizeCost,
-        avoid_risk: preferences.avoidRisk,
-        accessibility_first: preferences.accessibilityFirst
-      };
+      // 1. Resolve coordinates for any Indian city or state (Instant DB + Nominatim fallback)
+      const [originLocation, destLocation] = await Promise.all([
+        resolveLocationCoords(fromCity),
+        resolveLocationCoords(toCity)
+      ]);
 
-      const [res, originCoords, destCoords] = await Promise.all([
-        fetch(getApiUrl("/api/route-planner"), {
+      const originCoords = originLocation?.coords || [17.3850, 78.4867];
+      const destCoords = destLocation?.coords || [12.9716, 77.5946];
+      const origDisplayName = originLocation?.name || fromCity;
+      const destDisplayName = destLocation?.name || toCity;
+
+      // 2. Fetch or compute accurate route parameters tailored to origin and destination
+      let generatedData = null;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(getApiUrl("/api/route-planner"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }),
-        geocodeCity(fromCity),
-        geocodeCity(toCity)
-      ]);
-      
-      const data = await res.json();
-      setRouteData(data);
-      setActiveRouteId(data.recommended.id);
-
-      if (originCoords && destCoords) {
-        const midLat = (originCoords[0] + destCoords[0]) / 2;
-        const midLng = (originCoords[1] + destCoords[1]) / 2;
-        const dLat = destCoords[0] - originCoords[0];
-        const dLng = destCoords[1] - originCoords[1];
-
-        // Smooth natural highway waypoint vectors
-        let route1Points = [
-          originCoords,
-          [midLat + dLng * 0.12, midLng - dLat * 0.12],
-          destCoords
-        ];
-        let route2Points = [
-          originCoords,
-          [midLat + dLng * 0.28 + 0.15, midLng - dLat * 0.28 - 0.15],
-          destCoords
-        ];
-        let route3Points = [
-          originCoords,
-          [midLat - dLng * 0.25 - 0.15, midLng + dLat * 0.25 + 0.15],
-          destCoords
-        ];
-
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 1200);
-          const osrmRes = await fetch(
-            `https://router.project-osrm.org/route/v1/driving/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson&alternatives=3`,
-            { signal: controller.signal }
-          );
-          clearTimeout(timeoutId);
-          if (osrmRes.ok) {
-            const osrmData = await osrmRes.json();
-            if (osrmData.code === 'Ok' && osrmData.routes.length > 0) {
-              route1Points = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-              if (osrmData.routes.length > 1) {
-                route2Points = osrmData.routes[1].geometry.coordinates.map(c => [c[1], c[0]]);
-              }
-              if (osrmData.routes.length > 2) {
-                route3Points = osrmData.routes[2].geometry.coordinates.map(c => [c[1], c[0]]);
-              }
-            }
-          }
-        } catch {
-          // Graceful silent fallback to natural vector corridors without console noise
-        }
-
-        setMapData({
-          cities: [
-            { name: fromCity, coords: originCoords, color: '#3b82f6' },
-            { name: toCity, coords: destCoords, color: '#10b981' }
-          ],
-          corridors: [
-            { points: route1Points, color: '#3b82f6', dashArray: null, weight: 5 }, 
-            { points: route2Points, color: '#f59e0b', dashArray: '6,6', weight: 4 }, 
-            { points: route3Points, color: '#ef4444', dashArray: '6,6', weight: 4 } 
-          ]
+          body: JSON.stringify({
+            origin: origDisplayName,
+            destination: destDisplayName,
+            minimize_time: preferences.minimizeTime,
+            minimize_cost: preferences.minimizeCost,
+            avoid_risk: preferences.avoidRisk,
+            accessibility_first: preferences.accessibilityFirst
+          }),
+          signal: controller.signal
         });
-      } else {
-        setMapData({ corridors: null, cities: null });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          generatedData = await res.json();
+        }
+      } catch {
+        // Fallback gracefully to offline/local accurate route calculation
       }
 
+      if (!generatedData) {
+        generatedData = generateAccurateRoutes(
+          origDisplayName,
+          destDisplayName,
+          originCoords,
+          destCoords,
+          preferences
+        );
+      }
+
+      // 3. Query OpenStreetMap OSRM for actual highway road geometry across India
+      let route1Points = generateRealisticHighwayWaypoints(originCoords, destCoords, 0);
+      let route2Points = generateRealisticHighwayWaypoints(originCoords, destCoords, 1);
+      let route3Points = generateRealisticHighwayWaypoints(originCoords, destCoords, 2);
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const osrmRes = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson&alternatives=true`,
+          { signal: controller.signal }
+        );
+        clearTimeout(timeoutId);
+        if (osrmRes.ok) {
+          const osrmData = await osrmRes.json();
+          if (osrmData.code === 'Ok' && osrmData.routes && osrmData.routes.length > 0) {
+            route1Points = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+            // Update with exact OSRM highway driving distance and estimated time
+            const exactDistKm = Math.round(osrmData.routes[0].distance / 1000);
+            const exactMinutes = Math.round(osrmData.routes[0].duration / 60);
+            const exactH = Math.floor(exactMinutes / 60);
+            const exactM = exactMinutes % 60;
+
+            if (generatedData && generatedData.recommended) {
+              generatedData.recommended.distance = `${exactDistKm} km`;
+              generatedData.recommended.time = `${exactH}h ${exactM}m`;
+            }
+
+            if (osrmData.routes.length > 1) {
+              route2Points = osrmData.routes[1].geometry.coordinates.map(c => [c[1], c[0]]);
+            }
+            if (osrmData.routes.length > 2) {
+              route3Points = osrmData.routes[2].geometry.coordinates.map(c => [c[1], c[0]]);
+            }
+          }
+        }
+      } catch {
+        // Fallback already prepared with realistic multi-waypoint corridors
+      }
+
+      setRouteData(generatedData);
+      setActiveRouteId(generatedData.recommended.id);
+
+      setMapData({
+        cities: [
+          { name: origDisplayName, coords: originCoords, color: '#3b82f6' },
+          { name: destDisplayName, coords: destCoords, color: '#10b981' }
+        ],
+        corridorList: [
+          { id: 'route-1', points: route1Points },
+          { id: 'route-2', points: route2Points },
+          { id: 'route-3', points: route3Points }
+        ]
+      });
+
     } catch (err) {
-      console.error("Failed to fetch routes", err);
+      console.error("Failed to calculate routes:", err);
     } finally {
       setIsSearching(false);
     }
@@ -154,11 +163,24 @@ export const RoutePlannerPage = () => {
     handleFindBestRoute();
   }, []);
 
+
   const selectedRoute = routeData ? (
     routeData.recommended.id === activeRouteId 
       ? routeData.recommended 
       : routeData.alternatives.find(r => r.id === activeRouteId) || routeData.recommended
-  ) : ROUTE_RECOMMENDATION_DATA.recommended;
+  ) : null;
+
+  const activeCorridors = mapData.corridorList ? mapData.corridorList.map((c, idx) => {
+    const isSelected = c.id === activeRouteId;
+    const baseColors = ['#2563eb', '#f59e0b', '#8b5cf6'];
+    return {
+      points: c.points,
+      color: isSelected ? '#2563eb' : (baseColors[idx] || '#64748b'),
+      dashArray: isSelected ? null : '6, 6',
+      weight: isSelected ? 6 : 3,
+      opacity: isSelected ? 1.0 : 0.6
+    };
+  }) : null;
 
   return (
     <div className="page-container route-planner-page">
@@ -178,7 +200,7 @@ export const RoutePlannerPage = () => {
 
           <form onSubmit={handleFindBestRoute}>
             <div className="form-group">
-              <label className="form-label">From</label>
+              <label className="form-label">From (City / State)</label>
               <div className="input-with-icon">
                 <MapPin size={16} className="input-icon text-primary" />
                 <input
@@ -186,13 +208,13 @@ export const RoutePlannerPage = () => {
                   className="form-control"
                   value={fromCity}
                   onChange={(e) => setFromCity(e.target.value)}
-                  placeholder="Origin..."
+                  placeholder="e.g. Hyderabad, Mumbai, Delhi, Assam..."
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">To</label>
+              <label className="form-label">To (City / State)</label>
               <div className="input-with-icon">
                 <MapPin size={16} className="input-icon text-danger" />
                 <input
@@ -200,7 +222,7 @@ export const RoutePlannerPage = () => {
                   className="form-control"
                   value={toCity}
                   onChange={(e) => setToCity(e.target.value)}
-                  placeholder="Destination..."
+                  placeholder="e.g. Bengaluru, Gangtok, Chennai, Gujarat..."
                 />
               </div>
             </div>
@@ -278,51 +300,60 @@ export const RoutePlannerPage = () => {
             <div className="card-header">
               <div>
                 <h3 className="card-title">Corridor Multi-Path Analysis</h3>
-                <span className="card-subtitle-small">Showing Recommended vs Alternative Corridors with Risk Buffer Zones</span>
+                <span className="card-subtitle-small">
+                  Showing accurate National Highway route for {fromCity} → {toCity}
+                </span>
               </div>
-              <span className="badge badge-info">Multi-Path Active</span>
+              <span className="badge badge-info">Real-Road GPS Routing</span>
             </div>
             <CorridorMap 
-              height="320px" 
-              center={[17.2, 80.5]} 
-              zoom={7} 
-              customCorridors={mapData.corridors} 
+              height="340px" 
+              customCorridors={activeCorridors} 
               customCities={mapData.cities} 
             />
           </div>
 
           {/* Recommended Route Card matching design "Best Option" */}
           {routeData && (
-            <div className={`card recommended-route-card ${activeRouteId === routeData.recommended.id ? 'selected-route-glow' : ''}`}>
+            <div 
+              className={`card recommended-route-card ${activeRouteId === routeData.recommended.id ? 'selected-route-glow' : ''}`}
+              onClick={() => setActiveRouteId(routeData.recommended.id)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="rec-card-header">
                 <div className="rec-card-title-box">
                   <span className="badge badge-success">Best Option</span>
                   <h4>{routeData.recommended.name}</h4>
                 </div>
-                <button 
-                  className="btn btn-primary btn-sm"
-                  onClick={() => setShowDetailModal(true)}
-                >
-                  View Details
-                </button>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {activeRouteId === routeData.recommended.id && (
+                    <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 'bold' }}>Active on Map ✓</span>
+                  )}
+                  <button 
+                    className="btn btn-primary btn-sm"
+                    onClick={(e) => { e.stopPropagation(); setShowDetailModal(true); }}
+                  >
+                    View Details
+                  </button>
+                </div>
               </div>
 
               <div className="rec-metrics-grid">
                 <div className="rec-metric-item">
-                  <span className="rm-label">Time</span>
+                  <span className="rm-label">Distance</span>
+                  <span className="rm-val font-bold">{routeData.recommended.distance}</span>
+                </div>
+                <div className="rec-metric-item">
+                  <span className="rm-label">Est. Time</span>
                   <span className="rm-val font-bold">{routeData.recommended.time}</span>
                 </div>
                 <div className="rec-metric-item">
-                  <span className="rm-label">Cost</span>
+                  <span className="rm-label">Est. Cost</span>
                   <span className="rm-val font-bold">{routeData.recommended.cost}</span>
                 </div>
                 <div className="rec-metric-item">
-                  <span className="rm-label">Risk</span>
+                  <span className="rm-label">Risk Rating</span>
                   <span className="rm-val text-success font-bold">{routeData.recommended.risk}</span>
-                </div>
-                <div className="rec-metric-item">
-                  <span className="rm-label">Accessibility</span>
-                  <span className="rm-val text-primary font-bold">{routeData.recommended.accessibility}</span>
                 </div>
               </div>
 
@@ -331,25 +362,35 @@ export const RoutePlannerPage = () => {
           )}
 
           {/* Alternative Routes Grid matching design reference */}
-          {routeData && (
+          {routeData && routeData.alternatives && (
             <div className="alternatives-section">
-              <h4 className="section-subtitle">Alternative Routes</h4>
+              <h4 className="section-subtitle">Alternative Route Corridors</h4>
               <div className="alternatives-grid">
                 {routeData.alternatives.map((alt) => (
                   <div 
                     key={alt.id}
                     className={`card alt-route-card ${activeRouteId === alt.id ? 'active-alt-card' : ''}`}
+                    onClick={() => setActiveRouteId(alt.id)}
+                    style={{ cursor: 'pointer' }}
                   >
                     <div className="alt-card-header">
                       <strong>{alt.name}</strong>
-                      <button 
-                        className="link-btn-alt"
-                        onClick={() => setActiveRouteId(alt.id)}
-                      >
-                        View
-                      </button>
+                      <span style={{ 
+                        fontSize: '0.72rem', 
+                        padding: '2px 8px', 
+                        borderRadius: '4px',
+                        background: activeRouteId === alt.id ? '#2563eb' : 'rgba(255,255,255,0.08)',
+                        color: '#fff',
+                        fontWeight: '600'
+                      }}>
+                        {activeRouteId === alt.id ? 'Viewing on Map ✓' : 'Select'}
+                      </span>
                     </div>
                     <div className="alt-metrics-row">
+                      <div className="alt-stat">
+                        <span className="stat-name">Distance</span>
+                        <span className="stat-number">{alt.distance}</span>
+                      </div>
                       <div className="alt-stat">
                         <span className="stat-name">Time</span>
                         <span className="stat-number">{alt.time}</span>
@@ -366,22 +407,15 @@ export const RoutePlannerPage = () => {
                           {alt.risk}
                         </span>
                       </div>
-                      <div className="alt-stat">
-                        <span className="stat-name">Accessibility</span>
-                      <span className={`stat-number ${
-                        alt.accessibility === 'High' ? 'text-primary' : 'text-muted'
-                      }`}>
-                        {alt.accessibility}
-                      </span>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
           )}
         </div>
       </div>
+
 
       {/* Details Modal */}
       {showDetailModal && (

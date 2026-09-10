@@ -655,15 +655,120 @@ class RoutePlanRequest(BaseModel):
     avoid_risk: bool = True
     accessibility_first: bool = False
 
+INDIA_CITIES_PY = {
+    "hyderabad": (17.3850, 78.4867),
+    "bengaluru": (12.9716, 77.5946),
+    "bangalore": (12.9716, 77.5946),
+    "mumbai": (19.0760, 72.8777),
+    "delhi": (28.6139, 77.2090),
+    "new delhi": (28.6139, 77.2090),
+    "chennai": (13.0827, 80.2707),
+    "kolkata": (22.5726, 88.3639),
+    "pune": (18.5204, 73.8567),
+    "ahmedabad": (23.0225, 72.5714),
+    "surat": (21.1702, 72.8311),
+    "jaipur": (26.9124, 75.7873),
+    "lucknow": (26.8467, 80.9462),
+    "kanpur": (26.4499, 80.3319),
+    "nagpur": (21.1458, 79.0882),
+    "indore": (22.7196, 75.8577),
+    "bhopal": (23.2599, 77.4126),
+    "visakhapatnam": (17.6868, 83.2185),
+    "vizag": (17.6868, 83.2185),
+    "vijayawada": (16.5062, 80.6480),
+    "patna": (25.5941, 85.1376),
+    "vadodara": (22.3072, 73.1812),
+    "ludhiana": (30.9010, 75.8573),
+    "agra": (27.1767, 78.0081),
+    "nashik": (19.9975, 73.7898),
+    "varanasi": (25.3176, 82.9739),
+    "prayagraj": (25.4358, 81.8463),
+    "ranchi": (23.3441, 85.3096),
+    "coimbatore": (11.0168, 76.9558),
+    "raipur": (21.2514, 81.6296),
+    "chandigarh": (30.7333, 76.7794),
+    "amritsar": (31.6340, 74.8723),
+    "bhubaneswar": (20.2961, 85.8245),
+    "thiruvananthapuram": (8.5241, 76.9366),
+    "kochi": (9.9312, 76.2673),
+    "mysore": (12.2958, 76.6394),
+    "kurnool": (15.8281, 78.0373),
+    "tirupati": (13.6288, 79.4192),
+    "guntur": (16.3067, 80.4365),
+    "warangal": (17.9689, 79.5941),
+    "dehradun": (30.3165, 78.0322),
+    "shimla": (31.1048, 77.1734),
+    "srinagar": (34.0837, 74.7973),
+    "guwahati": (26.1445, 91.7362),
+    "gangtok": (27.3389, 88.6065),
+    "shillong": (25.5788, 91.8933),
+    "siliguri": (26.7271, 88.3953),
+    "tawang": (27.5861, 91.8594),
+    "itanagar": (27.0844, 93.6053),
+    "kohima": (25.6751, 94.1086),
+    "imphal": (24.8170, 93.9368),
+    "aizawl": (23.7271, 92.7176),
+    "agartala": (23.8315, 91.2868),
+    "andhra pradesh": (16.5062, 80.6480),
+    "telangana": (17.3850, 78.4867),
+    "tamil nadu": (13.0827, 80.2707),
+    "karnataka": (12.9716, 77.5946),
+    "kerala": (8.5241, 76.9366),
+    "maharashtra": (19.0760, 72.8777),
+    "gujarat": (23.0225, 72.5714),
+    "rajasthan": (26.9124, 75.7873),
+    "madhya pradesh": (23.2599, 77.4126),
+    "uttar pradesh": (26.8467, 80.9462),
+    "bihar": (25.5941, 85.1376),
+    "west bengal": (22.5726, 88.3639),
+    "odisha": (20.2961, 85.8245),
+    "punjab": (30.9010, 75.8573),
+    "haryana": (28.4595, 77.0266),
+    "jharkhand": (23.3441, 85.3096),
+    "chhattisgarh": (21.2514, 81.6296),
+    "assam": (26.1445, 91.7362),
+    "sikkim": (27.3389, 88.6065),
+    "meghalaya": (25.5788, 91.8933),
+    "arunachal pradesh": (27.0844, 93.6053),
+    "nagaland": (25.6751, 94.1086),
+    "manipur": (24.8170, 93.9368),
+    "mizoram": (23.7271, 92.7176),
+    "tripura": (23.8315, 91.2868),
+    "himachal pradesh": (31.1048, 77.1734),
+    "uttarakhand": (30.3165, 78.0322),
+    "goa": (15.2993, 74.1240),
+    "jammu and kashmir": (34.0837, 74.7973),
+    "ladakh": (34.1526, 77.5771),
+}
+
+def haversine_km(c1, c2):
+    lat1, lon1 = c1
+    lat2, lon2 = c2
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    return max(20, int(round(R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)))))
+
 @app.post("/api/route-planner")
 def plan_route(req: RoutePlanRequest):
     """Generates dynamic AI route recommendations based on origin and destination."""
     o = req.origin.strip().title()
     d = req.destination.strip().title()
 
-    # Generate slightly randomized realistic stats based on string lengths to simulate actual variations
-    base_dist = 100 + ((len(o) + len(d)) * 12)
-    base_time_hours = base_dist / 40.0
+    c1 = INDIA_CITIES_PY.get(o.lower())
+    c2 = INDIA_CITIES_PY.get(d.lower())
+    
+    if c1 and c2:
+        straight = haversine_km(c1, c2)
+        base_dist = int(round(straight * 1.24))
+    else:
+        # Fallback based on typical inter-city route in India
+        base_dist = 480
+
+    is_mountain = any(k in o.lower() or k in d.lower() for k in ["gangtok", "shillong", "sikkim", "tawang", "leh", "manali", "shimla"])
+    truck_speed = 38.0 if is_mountain else 62.0
+    base_time_hours = base_dist / truck_speed
     
     # Calculate different routes
     routes = []
@@ -672,46 +777,48 @@ def plan_route(req: RoutePlanRequest):
     time1 = base_time_hours * 1.0
     routes.append({
         "id": "route-1",
-        "name": f"NH Arterial via Main Highway",
+        "name": f"NH-44 / Primary National Highway Corridor",
         "time": f"{int(time1)}h {int((time1 % 1)*60)}m",
         "distance": f"{int(base_dist)} km",
-        "fuel": f"{int(base_dist * 0.15)} L",
-        "cost": f"₹{int(base_dist * 18)}",
-        "risk": "Medium",
+        "fuel": f"{int(base_dist * 0.26)} L",
+        "cost": f"₹{int(base_dist * 22 + 1200):,}",
+        "risk": "Medium" if is_mountain else "Low",
         "accessibility": "High (4-Lane)",
-        "description": f"The primary multi-lane highway connecting {o} and {d}. Heavy commercial traffic but well-maintained.",
+        "description": f"The primary multi-lane National Highway corridor connecting {o} and {d}. High road surface quality with standard commercial velocity.",
         "score": 85 if req.minimize_time else 70,
         "is_best": False
     })
     
-    # Route 2: Scenic/Mountain (Higher risk, shorter distance)
-    time2 = base_time_hours * 1.2
+    # Route 2: Arterial Bypass (Higher distance, lower risk / congestion)
+    time2 = base_time_hours * 1.12
+    alt1_dist = int(base_dist * 1.08)
     routes.append({
         "id": "route-2",
-        "name": f"Mountain Pass via State Road",
+        "name": f"Arterial Bypass Corridor (via Central Logistics Link)",
         "time": f"{int(time2)}h {int((time2 % 1)*60)}m",
-        "distance": f"{int(base_dist * 0.85)} km",
-        "fuel": f"{int(base_dist * 0.85 * 0.20)} L",
-        "cost": f"₹{int(base_dist * 14)}",
-        "risk": "High",
-        "accessibility": "Low (2-Lane steep)",
-        "description": f"Shorter geographical distance but requires navigating steep gradients. Prone to landslides.",
+        "distance": f"{alt1_dist} km",
+        "fuel": f"{int(alt1_dist * 0.27)} L",
+        "cost": f"₹{int(alt1_dist * 20 + 800):,}",
+        "risk": "High" if is_mountain else "Low",
+        "accessibility": "High",
+        "description": f"Bypasses major urban toll bottlenecks and chokepoints between {o} and {d}. Consistent night transit speeds.",
         "score": 90 if (req.minimize_cost and not req.avoid_risk) else 40,
         "is_best": False
     })
     
-    # Route 3: Valley Bypass (Safest, longest)
-    time3 = base_time_hours * 1.4
+    # Route 3: State Highway Corridor (Safest/Low Toll)
+    time3 = base_time_hours * 1.25
+    alt2_dist = int(base_dist * 1.15)
     routes.append({
         "id": "route-3",
-        "name": f"Valley Bypass & Express Corridor",
+        "name": f"State Highway Corridor (Low Toll Rural Freight Belt)",
         "time": f"{int(time3)}h {int((time3 % 1)*60)}m",
-        "distance": f"{int(base_dist * 1.25)} km",
-        "fuel": f"{int(base_dist * 1.25 * 0.14)} L",
-        "cost": f"₹{int(base_dist * 22)}",
-        "risk": "Low",
-        "accessibility": "Very High",
-        "description": f"A longer detour avoiding all major congestion and landslide zones. Ideal for heavy containers.",
+        "distance": f"{alt2_dist} km",
+        "fuel": f"{int(alt2_dist * 0.29)} L",
+        "cost": f"₹{int(alt2_dist * 17 + 400):,}",
+        "risk": "High" if is_mountain else "Medium",
+        "accessibility": "Medium",
+        "description": f"Secondary state route network. Ideal for cost-sensitive bulk transport between {o} and {d}.",
         "score": 95 if (req.avoid_risk and req.accessibility_first) else 60,
         "is_best": False
     })
@@ -726,6 +833,7 @@ def plan_route(req: RoutePlanRequest):
         "recommended": routes[0],
         "alternatives": routes[1:]
     }
+
 
 @app.post("/api/driver/location")
 async def update_driver_location(payload: Dict[str, Any]):

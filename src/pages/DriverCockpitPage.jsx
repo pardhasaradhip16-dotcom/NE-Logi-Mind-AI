@@ -25,6 +25,7 @@ import { DRIVER_PROFILES } from '../data/driversData';
 import { VoiceAssistant } from '../components/voice/VoiceAssistant';
 import { speakText, unlockAudio } from '../services/voiceService';
 import { getApiUrl } from '../config/apiConfig';
+import { resolveLocationCoords, generateRealisticHighwayWaypoints, calculateHaversineDistance } from '../data/indiaGeoData';
 import './DriverCockpitPage.css';
 export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
   const [activeDriverId, setActiveDriverId] = useState(initialDriverId);
@@ -347,44 +348,44 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
       setDynamicDestName(payload.destination);
 
       try {
-        // 1. Geocode the destination using free OpenStreetMap Nominatim, restricted to India
-        const destGeocodeRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(payload.destination)}&countrycodes=in`);
-        const destGeocodeData = await destGeocodeRes.json();
-
+        // 1. Instant resolution of destination via Indian Geographic Database + Nominatim fallback
+        const destLocation = await resolveLocationCoords(payload.destination);
         let startCoords = coords; // Default to driver's current location
 
         if (isCustomOrigin) {
-          const origGeocodeRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(payload.origin)}&countrycodes=in`);
-          const origGeocodeData = await origGeocodeRes.json();
-          if (origGeocodeData && origGeocodeData.length > 0) {
-             startCoords = [parseFloat(origGeocodeData[0].lat), parseFloat(origGeocodeData[0].lon)];
+          const origLocation = await resolveLocationCoords(payload.origin);
+          if (origLocation?.coords) {
+            startCoords = origLocation.coords;
           } else {
-             setActiveAlert(`Starting location '${payload.origin}' not found in India. Using current location.`);
+            setActiveAlert(`Starting location '${payload.origin}' not found. Using current location.`);
           }
         }
 
-        if (destGeocodeData && destGeocodeData.length > 0) {
-          const destLat = parseFloat(destGeocodeData[0].lat);
-          const destLng = parseFloat(destGeocodeData[0].lon);
-          const isMtn = isMountainDestination(payload.destination);
+        if (destLocation?.coords) {
+          const destLat = destLocation.coords[0];
+          const destLng = destLocation.coords[1];
+          const isMtn = destLocation.isMountain || isMountainDestination(payload.destination);
 
-          // 2. Get Route from OSRM Free API with fast abort
+          // 2. Get Route from OSRM Free API with generous 4000ms timeout
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 1200);
-            const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${startCoords[1]},${startCoords[0]};${destLng},${destLat}?overview=full&geometries=geojson`, { signal: controller.signal });
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const osrmRes = await fetch(
+              `https://router.project-osrm.org/route/v1/driving/${startCoords[1]},${startCoords[0]};${destLng},${destLat}?overview=full&geometries=geojson`,
+              { signal: controller.signal }
+            );
             clearTimeout(timeoutId);
 
             if (osrmRes.ok) {
               const osrmData = await osrmRes.json();
 
-              if (osrmData.code === 'Ok' && osrmData.routes.length > 0) {
-                const routeCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]); // OSRM is Lng,Lat -> Leaflet needs Lat,Lng
+              if (osrmData.code === 'Ok' && osrmData.routes && osrmData.routes.length > 0) {
+                const routeCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
                 const distKm = Math.round(osrmData.routes[0].distance / 1000);
 
                 const newCtx = {
                   origin: payload.origin || driver.route.originCity,
-                  destination: payload.destination,
+                  destination: destLocation.name || payload.destination,
                   distanceKm: distKm,
                   isMountain: isMtn,
                   isDetour: false
@@ -416,15 +417,15 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
             }
             throw new Error("Route fallback");
           } catch {
-            // 3. Fallback for Northern India / Long distances where free OSRM fails or times out
+            // 3. Fallback: Smooth multi-waypoint realistic highway curve across India
             if (routePolylineRef.current && mapInstanceRef.current) {
-              const fallbackCoords = [startCoords, [destLat, destLng]];
-              // Rough pythagorean distance in km (1 degree ~ 111km)
-              const distKm = Math.round(Math.sqrt(Math.pow(startCoords[0] - destLat, 2) + Math.pow(startCoords[1] - destLng, 2)) * 111);
+              const fallbackCoords = generateRealisticHighwayWaypoints(startCoords, [destLat, destLng], 0);
+              const straightKm = calculateHaversineDistance(startCoords, [destLat, destLng]);
+              const distKm = Math.max(25, Math.round(straightKm * (isMtn ? 1.42 : 1.22)));
               
               const newCtx = {
                 origin: payload.origin || driver.route.originCity,
-                destination: payload.destination,
+                destination: destLocation.name || payload.destination,
                 distanceKm: distKm,
                 isMountain: isMtn,
                 isDetour: false
@@ -436,9 +437,9 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
               setWaypointIdx(0);
 
               routePolylineRef.current.setLatLngs(fallbackCoords);
-              routePolylineRef.current.setStyle({ color: '#f59e0b', dashArray: '10, 10', weight: 4 });
+              routePolylineRef.current.setStyle({ color: '#3b82f6', dashArray: '8, 8', weight: 5 });
               mapInstanceRef.current.fitBounds(routePolylineRef.current.getBounds(), { padding: [50, 50], animate: false });
-              setActiveAlert(`Direct corridor mapped ${isCustomOrigin ? `from ${payload.origin} ` : ''}to ${payload.destination}. (Long distance fallback mode)`);
+              setActiveAlert(`Direct corridor mapped ${isCustomOrigin ? `from ${payload.origin} ` : ''}to ${payload.destination}. National Highway route active.`);
               
               // Fetch ML prediction for the new route and SPEAK IT out loud
               fetchDriverPrediction(newCtx.origin, newCtx.destination, distKm, true, newCtx);
@@ -452,8 +453,9 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
             }
           }
         } else {
-           setActiveAlert(`Location '${payload.destination}' not found in India.`);
+          setActiveAlert(`Location '${payload.destination}' not found in India.`);
         }
+
       } catch (err) {
         console.error("Routing error:", err);
         setActiveAlert("Error calculating route. Please check network.");
