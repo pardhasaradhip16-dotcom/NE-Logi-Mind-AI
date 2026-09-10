@@ -9,7 +9,11 @@ const getHostUrl = () => {
   }
   if (typeof window !== 'undefined') {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    return isLocal ? 'http://localhost:8000' : `http://${window.location.hostname}:8000`;
+    if (isLocal) {
+      return 'http://localhost:8000';
+    }
+    // In production HTTPS, fallback to live Render backend if VITE_BACKEND_URL is omitted
+    return 'https://ne-logi-mind-backend.onrender.com';
   }
   return 'http://localhost:8000';
 };

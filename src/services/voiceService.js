@@ -2,7 +2,10 @@ let cachedVoices = [];
 
 const loadVoices = () => {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    cachedVoices = window.speechSynthesis.getVoices();
+    const v = window.speechSynthesis.getVoices();
+    if (v && v.length > 0) {
+      cachedVoices = v;
+    }
   }
 };
 
@@ -11,11 +14,33 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
+export const unlockAudio = () => {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+};
+
+export const isSpeechSupported = () => {
+  const hasSynthesis = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const hasRecognition = typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  return { hasSynthesis, hasRecognition };
+};
+
 export const speakText = (text, lang = 'en-IN') => {
-  if (!('speechSynthesis' in window)) return;
+  if (typeof window === 'undefined' || !('speechSynthesis' in window) || !text) return;
   
-  // Stop any ongoing speech
-  window.speechSynthesis.cancel();
+  try {
+    window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+  } catch (e) {}
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang;
@@ -23,10 +48,10 @@ export const speakText = (text, lang = 'en-IN') => {
   utterance.pitch = 1.0;
 
   // Retrieve cached voices or fresh list
-  const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+  const voices = (cachedVoices.length > 0) ? cachedVoices : window.speechSynthesis.getVoices();
   const langCode = lang.split('-')[0].toLowerCase(); // 'hi', 'te', 'bn', 'en', etc.
 
-  if (voices.length > 0) {
+  if (voices && voices.length > 0) {
     // 1. Exact match (e.g. hi-IN or te-IN)
     let matchedVoice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === lang.toLowerCase());
     
@@ -45,29 +70,51 @@ export const speakText = (text, lang = 'en-IN') => {
     }
   }
 
-  window.speechSynthesis.speak(utterance);
+  try {
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.warn("Speech synthesis trigger error:", e);
+  }
 };
 
 export const startListening = (onResult, onError, onEnd, lang = 'hi-IN') => {
+  unlockAudio();
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   
   if (!SpeechRecognition) {
-    onError(new Error("Speech recognition not supported in this browser. Please use Chrome."));
+    onError(new Error("Voice recognition is not supported in this browser. Please use Google Chrome or tap the quick commands below."));
     return null;
   }
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = lang; // Default to Hindi since the user asked for "their own language" often Hindi/local in India context.
+  let recognition;
+  try {
+    recognition = new SpeechRecognition();
+  } catch (err) {
+    onError(new Error("Could not initialize microphone. Please check permissions or tap quick commands."));
+    return null;
+  }
+
+  recognition.lang = lang;
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
 
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    onResult(transcript);
+    if (event.results && event.results[0] && event.results[0][0]) {
+      const transcript = event.results[0][0].transcript;
+      onResult(transcript);
+    }
   };
 
   recognition.onerror = (event) => {
-    onError(new Error(event.error));
+    let errorMsg = event.error || "Speech recognition error";
+    if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+      errorMsg = "Microphone access denied. Please allow microphone in browser address bar.";
+    } else if (event.error === 'no-speech') {
+      errorMsg = "No speech heard. Try speaking closer to mic or tap a quick command.";
+    } else if (event.error === 'network') {
+      errorMsg = "Network latency detected. You can use quick command chips.";
+    }
+    onError(new Error(errorMsg));
   };
 
   recognition.onend = () => {
