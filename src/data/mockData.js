@@ -695,71 +695,95 @@ export const DIGITAL_TWIN_SCENARIOS = {
 
 export const REPORTS_DATA = {
   accessibilityScore: {
-    score: 78,
+    score: 82,
     maxScore: 100,
-    statusText: "Good Accessibility",
-    subtext: "Most routes are accessible, with minor risk in 2 regions.",
+    statusText: "Optimal Accessibility",
+    subtext: "All primary national and Northeast express corridors operating with high resilience.",
   },
   riskDistribution: {
-    low: { percentage: 68, label: "Low Risk", color: "#10b981" },
-    medium: { percentage: 22, label: "Medium Risk", color: "#f59e0b" },
-    high: { percentage: 10, label: "High Risk", color: "#ef4444" },
+    low: { percentage: 65, label: "Low Risk", color: "#10b981", count: 4 },
+    medium: { percentage: 22, label: "Medium Risk", color: "#f59e0b", count: 1 },
+    high: { percentage: 13, label: "High Risk", color: "#ef4444", count: 1 },
   },
   shipmentPerformance: [
-    { label: "On Time", percentage: 92, color: "#10b981" },
-    { label: "Delayed", percentage: 6, color: "#ef4444" },
-    { label: "Cancelled", percentage: 2, color: "#64748b" },
+    { label: "On Time", percentage: 88, color: "#10b981", count: 5 },
+    { label: "Delayed / At Risk", percentage: 12, color: "#ef4444", count: 1 },
+    { label: "Maintenance / Reserve", percentage: 0, color: "#64748b", count: 0 },
   ],
   topRiskLocations: [
     {
-      location: "Tirupati",
+      location: "Guwahati -> Gangtok",
       riskLevel: "High",
-      reason: "Landslide + Heavy Rainfall",
-      affectedCorridor: "NH71 / Ghat Section",
+      reason: "Teesta Gorge Heavy Rain & Landslide Vulnerability",
+      affectedCorridor: "Tata Prima 4028 (NLM-NE-2026-001A)",
+      riskScore: 84,
+      driver: "Biren Das"
     },
     {
-      location: "Nellore",
+      location: "Kohima -> Imphal",
       riskLevel: "Medium",
-      reason: "Flood Risk",
-      affectedCorridor: "Pennar River Inundation",
+      reason: "NH2 Senapati Valley Monsoon Infiltration",
+      affectedCorridor: "BharatBenz 2823R (NLM-NE-2026-003C)",
+      riskScore: 62,
+      driver: "Luwang Singh"
     },
     {
-      location: "Vijayawada",
+      location: "Chennai -> Hyderabad",
       riskLevel: "Medium",
-      reason: "Traffic Congestion",
-      affectedCorridor: "NH16 Junction Chokepoint",
+      reason: "Pennar Basin Heavy Rainfall Congestion",
+      affectedCorridor: "Tata Prima 4028 (TN-09-BK-9182)",
+      riskScore: 48,
+      driver: "Senthil Nathan"
     },
     {
-      location: "Vizag Port Road",
+      location: "Guwahati -> Shillong",
       riskLevel: "Low",
-      reason: "Heavy Container Queue",
-      affectedCorridor: "Port Gate 3 Ingress",
+      reason: "Optimal 4-Lane Pavement (Barapani Basin)",
+      affectedCorridor: "Eicher Pro 2049 Reefer (NLM-NE-2026-002B)",
+      riskScore: 18,
+      driver: "Wanphrang Nongrum"
     },
   ],
   recentAlerts: [
     {
-      id: "alt-1",
-      title: "Heavy rainfall alert for Tirupati region",
-      timestamp: "12 Jun, 09:20",
+      id: "alt-live-1",
+      title: "Telemetry Alert [NLM-NE-2026-001A]: Teesta Gorge Landslide warning. Detour active via Lava Pass.",
+      timestamp: "Today, 10:45 AM",
       severity: "high",
+      driver: "Biren Das",
+      vehicle: "Tata Prima 4028",
+      origin: "Guwahati",
+      destination: "Gangtok"
     },
     {
-      id: "alt-2",
-      title: "Road blockage on NH16",
-      timestamp: "12 Jun, 08:15",
+      id: "alt-live-2",
+      title: "Telemetry Alert [NLM-NE-2026-003C]: NH2 Senapati sector heavy rain stress detected.",
+      timestamp: "Today, 09:30 AM",
       severity: "medium",
+      driver: "Luwang Singh",
+      vehicle: "BharatBenz 2823R",
+      origin: "Kohima",
+      destination: "Imphal"
     },
     {
-      id: "alt-3",
-      title: "Delay predicted for SHP003",
-      timestamp: "12 Jun, 07:30",
-      severity: "warning",
-    },
-    {
-      id: "alt-4",
-      title: "Weather change detected (Kolkata)",
-      timestamp: "11 Jun, 23:45",
+      id: "alt-live-3",
+      title: "Cold-Chain Integrity Verified [NLM-NE-2026-002B]: Reefer temp stabilized at 3.8°C.",
+      timestamp: "Today, 08:15 AM",
       severity: "info",
+      driver: "Wanphrang Nongrum",
+      vehicle: "Eicher Pro 2049",
+      origin: "Guwahati",
+      destination: "Shillong"
+    },
+    {
+      id: "alt-live-4",
+      title: "National Arterial Clearance: Delhi-Mumbai corridor running at 98% nominal speed.",
+      timestamp: "Today, 06:00 AM",
+      severity: "info",
+      driver: "Rajesh Kumar",
+      vehicle: "Volvo FH16",
+      origin: "Delhi",
+      destination: "Mumbai"
     },
   ],
 };
