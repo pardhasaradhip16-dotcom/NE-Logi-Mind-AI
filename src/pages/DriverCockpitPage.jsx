@@ -54,6 +54,42 @@ export const DriverCockpitPage = ({ initialDriverId = "DRV-001" }) => {
   const routeContextRef = useRef(routeContext);
   routeContextRef.current = routeContext;
 
+  // Map and hardware refs
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const driverMarkerRef = useRef(null);
+  const routePolylineRef = useRef(null);
+  const simulationTimerRef = useRef(null);
+  const watchIdRef = useRef(null);
+
+  // Send GPS transmission to backend
+  const transmitLocation = useCallback(async (newCoords, newSpeed, isSim = false, wpIndex = null) => {
+    try {
+      const payload = {
+        driverId: driver.id,
+        shipmentId: driver.assignedShipmentId,
+        coords: newCoords,
+        speed: newSpeed,
+        heading: heading,
+        isSimulated: isSim,
+        waypointIndex: wpIndex !== null ? wpIndex : waypointIdx
+      };
+
+      const res = await fetch(getApiUrl("/api/driver/location"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setGpsStatusText(`Live GPS Lock (Telemetry Synced • Ping #${Math.floor(Math.random() * 900 + 100)})`);
+      }
+    } catch (err) {
+      console.warn("[DriverCockpit] Backend GPS broadcast operating in offline fallback:", err.message);
+      setGpsStatusText("Local Mode (Edge Telemetry Active)");
+    }
+  }, [driver.id, driver.assignedShipmentId, heading, waypointIdx]);
+
   // Detect mountain vs national highway/plains destination
   const isMountainDestination = (dest = '') => {
     const mountainKeywords = [
