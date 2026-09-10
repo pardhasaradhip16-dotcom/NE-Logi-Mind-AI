@@ -1,0 +1,83 @@
+{
+  "dataset_total_records": 20000,
+  "dataset_delayed_records": 6317,
+  "dataset_delayed_percentage": 31.59,
+  "test_sample_size": 4000,
+  "classifier": {
+    "model_type": "HistGradientBoostingClassifier",
+    "accuracy": 83.25,
+    "precision": 76.03,
+    "recall": 68.57,
+    "f1_score": 72.11,
+    "roc_auc": 0.9045
+  },
+  "regressor": {
+    "model_type": "HistGradientBoostingRegressor",
+    "mae_hours": 2.197,
+    "rmse_hours": 3.297,
+    "r2_score": 0.6155
+  },
+  "features": {
+    "numeric": [
+      "distance_km",
+      "vehicle_capacity",
+      "vehicle_load_percentage",
+      "rainfall_mm",
+      "landslide_risk",
+      "road_blockage",
+      "route_accessibility_score",
+      "expected_delivery_hours",
+      "departure_hour",
+      "monsoon_road_stress",
+      "mountain_hazard_index"
+    ],
+    "categorical": [
+      "origin",
+      "destination",
+      "vehicle_type",
+      "traffic_level",
+      "weather_condition",
+      "road_condition"
+    ]
+  },
+  "origins": [
+    "Agartala",
+    "Aizawl",
+    "Gangtok",
+    "Guwahati",
+    "Imphal",
+    "Itanagar",
+    "Kohima",
+    "Shillong"
+  ],
+  "destinations": [
+    "Agartala",
+    "Aizawl",
+    "Gangtok",
+    "Guwahati",
+    "Imphal",
+    "Itanagar",
+    "Kohima",
+    "Shillong"
+  ],
+  "vehicle_types": [
+    "Container Truck",
+    "Heavy Truck",
+    "Light Truck",
+    "Mini Truck",
+    "Van"
+  ],
+  "weather_conditions": [
+    "clear",
+    "cloudy",
+    "heavy_rain",
+    "rain",
+    "storm"
+  ],
+  "road_conditions": [
+    "fair",
+    "good",
+    "poor",
+    "very_poor"
+  ]
+}

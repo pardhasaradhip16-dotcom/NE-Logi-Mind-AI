@@ -1,0 +1,680 @@
+/* ==========================================================================
+   NE-LOGI MIND AI - DRIVER COCKPIT & LIVE GPS IN-CAB PORTAL
+   High-contrast, tactical, responsive driver interface
+   ========================================================================== */
+
+.driver-cockpit-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2.5rem;
+}
+
+/* Driver Selection Strip */
+.driver-switcher-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.driver-profile-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 0.4rem 0.95rem 0.4rem 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.driver-profile-pill:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.driver-profile-pill.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+}
+
+.pill-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.pill-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.pill-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pill-sub {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+/* Cockpit Hero Card */
+.cockpit-hero-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cockpit-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.hero-driver-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hero-avatar-large {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+.hero-driver-name {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.hero-vehicle-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+}
+
+.hero-vehicle-tag strong {
+  color: #38bdf8;
+}
+
+.hero-status-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.gps-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.gps-live-badge.live {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  color: #34d399;
+}
+
+.gps-live-badge.standby {
+  background: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #cbd5e1;
+}
+
+.gps-dot-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  animation: gps-blink 1.5s infinite;
+}
+
+@keyframes gps-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* In-Cab Controls Row */
+.cockpit-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cockpit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.cockpit-btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.cockpit-btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.cockpit-btn-primary.active {
+  background: #059669;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
+}
+
+.cockpit-btn-secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cockpit-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.cockpit-btn-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.cockpit-btn-warning:hover {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.cockpit-btn-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.cockpit-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* Cockpit Grid */
+.cockpit-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.25rem;
+}
+
+@media (max-width: 1080px) {
+  .cockpit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Map & Turn-by-Turn Panel */
+.cockpit-map-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.driver-map-container {
+  height: 440px;
+  width: 100%;
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+}
+
+/* In-Map Telemetry HUD */
+.map-hud-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 0.78rem;
+}
+
+.hud-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hud-stat-row span {
+  color: #94a3b8;
+}
+
+.hud-stat-row strong {
+  font-family: monospace;
+  color: #38bdf8;
+  font-size: 0.85rem;
+}
+
+/* Turn-by-Turn Instruction Banner */
+.turn-instruction-banner {
+  margin-top: 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tib-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tib-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tib-text h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tib-text p {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.tib-dist {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tib-dist small {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+/* Right Side: ML Predictions & Route Planner */
+.cockpit-sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ML In-Cab Prediction Card */
+.driver-prediction-card {
+  padding: 1.25rem;
+}
+
+.driver-metric-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.driver-mini-kpi {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.driver-mini-kpi .kpi-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.driver-mini-kpi .kpi-val {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-top: 0.15rem;
+  line-height: 1.1;
+}
+
+.hazard-alert-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.78rem;
+  color: #b91c1c;
+  line-height: 1.4;
+}
+
+/* Route Checkpoint Stepper */
+.route-checkpoint-card {
+  padding: 1.25rem;
+}
+
+.checkpoints-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  position: relative;
+}
+
+.checkpoint-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.step-bullet {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-subtle);
+  background: #ffffff;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.checkpoint-step.passed .step-bullet {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.checkpoint-step.current .step-bullet {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+}
+
+.checkpoint-step.upcoming .step-bullet {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.step-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.step-info strong {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.step-info span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   RESPONSIVE COCKPIT OVERLAYS & HUD (MOBILE + DESKTOP)
+   ========================================================================== */
+.cockpit-fullscreen-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.cockpit-top-hud {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: 90%;
+  max-width: 800px;
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+}
+
+.cockpit-status-card {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 18px 24px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.cockpit-checkpoint-title {
+  font-size: 1rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+.cockpit-checkpoint-name {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.cockpit-risk-pill {
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cockpit-risk-telemetry-hud {
+  position: absolute;
+  top: 150px;
+  left: 24px;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  padding: 20px;
+  color: white;
+  width: 360px;
+  max-width: 90vw;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+}
+
+.cockpit-voice-widget {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  transform: scale(0.92);
+  transform-origin: bottom right;
+}
+
+.cockpit-gps-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cockpit-gps-btn {
+  padding: 14px 22px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+  color: white;
+}
+
+/* Mobile Devices & Small Tablets (< 768px) */
+@media (max-width: 768px) {
+  .cockpit-fullscreen-container {
+    height: calc(100vh - 120px);
+  }
+
+  .cockpit-top-hud {
+    top: 10px;
+    width: 94%;
+    gap: 8px;
+  }
+
+  .cockpit-status-card {
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+
+  .cockpit-checkpoint-title {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+    letter-spacing: 1px;
+  }
+
+  .cockpit-checkpoint-name {
+    font-size: 1.25rem;
+  }
+
+  .cockpit-risk-pill {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    gap: 6px;
+  }
+
+  .cockpit-risk-pill svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .cockpit-risk-telemetry-hud {
+    top: auto;
+    bottom: 80px;
+    left: 10px;
+    right: 10px;
+    width: calc(100% - 20px);
+    max-width: none;
+    padding: 12px;
+    border-radius: 14px;
+    max-height: 190px;
+    overflow-y: auto;
+  }
+
+  .cockpit-risk-telemetry-hud h3 {
+    font-size: 0.95rem !important;
+  }
+
+  .cockpit-voice-widget {
+    bottom: 12px;
+    right: 12px;
+    transform: scale(0.78);
+  }
+
+  .cockpit-gps-controls {
+    bottom: 12px;
+    left: 12px;
+    gap: 8px;
+  }
+
+  .cockpit-gps-btn {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    border-radius: 20px;
+    gap: 6px;
+  }
+
+  .cockpit-gps-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}

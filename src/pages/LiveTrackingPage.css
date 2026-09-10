@@ -1,0 +1,1488 @@
+/* ==========================================================================
+   NE-LOGI MIND AI - LIVE TRACKING PAGE STYLES
+   Real-Time Telematics, Fleet Logistics, Route Corridors, & Modal Details
+   ========================================================================== */
+
+.live-tracking-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2.5rem;
+}
+
+/* Page Header & Summary Strip */
+.tracking-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tracking-header-left {
+  flex: 1;
+  min-width: 280px;
+}
+
+.tracking-kpi-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.kpi-chip-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-chip-btn:hover {
+  background: var(--bg-card-subtle);
+  border-color: var(--border-subtle);
+  transform: translateY(-1px);
+}
+
+.kpi-chip-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-chip-val {
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.kpi-chip-btn.active .kpi-chip-val {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.kpi-val-all { background: #f1f5f9; color: #475569; }
+.kpi-val-ontime { background: #ecfdf5; color: #065f46; }
+.kpi-val-delayed { background: #fef2f2; color: #991b1b; }
+.kpi-val-atrisk { background: #fffbeb; color: #92400e; }
+.kpi-val-delivered { background: #f8fafc; color: #475569; }
+
+/* Mobile View Switcher */
+.mobile-view-toggle {
+  display: none;
+  background: var(--bg-card-subtle);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+.btn-toggle {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: all var(--transition-fast);
+}
+
+.btn-toggle.active {
+  background: #ffffff;
+  color: var(--primary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Control Bar (Search & Filters) */
+.tracking-control-panel {
+  padding: 0.85rem 1.15rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.control-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tracking-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.85rem;
+  flex: 1;
+  min-width: 260px;
+  max-width: 420px;
+  transition: all var(--transition-fast);
+}
+
+.tracking-search-box:focus-within {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.tracking-search-box input {
+  background: transparent;
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.tracking-search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.clear-search-btn {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 5px;
+}
+
+.clear-search-btn:hover {
+  color: var(--text-primary);
+}
+
+.tracking-filters-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.tracking-pills-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.pills-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-pill-btn {
+  background: var(--bg-card-subtle);
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+
+.filter-pill-btn:hover {
+  background: #e2e8f0;
+  color: var(--text-primary);
+}
+
+.filter-pill-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+/* ==========================================================================
+   MAIN TRACKING 3-COLUMN LAYOUT
+   Left: Shipment List (320px) | Center: Map (Flex) | Right: Telematics (320px)
+   ========================================================================== */
+.tracking-main-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr 320px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* Left Panel: Fleet List */
+.tracking-left-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.fleet-list-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  max-height: 720px;
+  overflow: hidden;
+}
+
+.fleet-list-card .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: #ffffff;
+}
+
+.live-telemetry-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.pulsing-beacon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-ring 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.fleet-cards-scroll {
+  overflow-y: auto;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 640px;
+}
+
+/* Shipment Item Card */
+.shipment-item-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.shipment-item-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.shipment-item-card.is-selected {
+  border-color: var(--primary);
+  background: #f8faff;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), var(--shadow-md);
+}
+
+.shipment-item-card.is-selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary);
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.shp-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shp-id-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.shp-id-text {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.shp-track-no {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* Route Corridor Row */
+.shp-corridor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-card-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.corridor-city-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.city-point {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-green { background-color: #10b981; }
+.dot-red { background-color: #ef4444; }
+.dot-orange { background-color: #f59e0b; }
+
+.corridor-connector-line {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  flex: 1;
+  text-align: center;
+}
+
+/* Progress bar inside card */
+.shp-progress-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.progress-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.progress-pct {
+  color: var(--text-primary);
+}
+
+.progress-track-bg {
+  width: 100%;
+  height: 5px;
+  background: #f1f5f9;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill-bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+/* Card stats footer */
+.shp-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.shp-meta-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.meta-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.btn-inspect-link {
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.btn-inspect-link:hover {
+  background: var(--primary-light);
+  color: var(--primary-hover);
+}
+
+.empty-fleet-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Center Panel: Interactive Leaflet Map */
+.tracking-center-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.map-container-card {
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.live-tracking-map-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 580px;
+}
+
+.map-floating-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.map-control-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.map-control-btn:hover {
+  background: #ffffff;
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.map-telemetry-indicator {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  color: #f8fafc;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.74rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.telemetry-live-beacon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-ring 2s infinite;
+}
+
+.map-tracking-legend {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.tracking-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.active-route-tag {
+  padding-left: 0.6rem;
+  border-left: 1px solid var(--border-light);
+  color: var(--primary);
+}
+
+.dash-blue {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* Leaflet Custom Marker Styles */
+.vehicle-leaflet-marker {
+  background: transparent;
+  border: none;
+}
+
+.map-vehicle-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.map-vehicle-pill:hover {
+  transform: scale(1.1);
+  z-index: 999;
+}
+
+.vehicle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.vehicle-tag {
+  letter-spacing: 0.02em;
+}
+
+.selected-pulse {
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.8);
+}
+
+.vehicle-pulse-ring {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border: 2px solid #3b82f6;
+  border-radius: 9999px;
+  animation: marker-pulse 1.8s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes marker-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Right Panel: Live Telematics Overview */
+.tracking-right-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.telematics-snapshot-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.telematics-snapshot-card .card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Corridor visual connector */
+.snapshot-corridor-card {
+  background: var(--bg-card-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.sc-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.sc-point strong {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--text-primary);
+}
+
+.sc-point span {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.sc-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.sc-track-vertical {
+  width: 2px;
+  height: 22px;
+  background: #cbd5e1;
+  margin-left: 4px;
+  border-left: 2px dashed #94a3b8;
+}
+
+/* Telemetry 4-grid */
+.snapshot-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.sm-item {
+  background: var(--bg-card-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.sm-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sm-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* Current location block */
+.snapshot-location-box {
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sl-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sl-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.sl-address {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.sl-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Delay Alert Notification */
+.snapshot-delay-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.78rem;
+}
+
+.snapshot-delay-alert strong {
+  color: #991b1b;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.snapshot-delay-alert p {
+  color: #b91c1c;
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* Vehicle & Driver Quick Block */
+.snapshot-vehicle-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg-card-subtle);
+  border-radius: var(--radius-md);
+}
+
+.svc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.svc-val {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   MODAL: SHIPMENT FULL DETAIL & TELEMATICS
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 17, 32, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.shipment-modal-card {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.shipment-modal-card .modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  background: #ffffff;
+}
+
+.modal-top-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.tracking-code-badge {
+  font-size: 0.74rem;
+  font-family: monospace;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  background: #f1f5f9;
+  color: #334155;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e2e8f0;
+}
+
+.modal-shipment-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.modal-close-btn {
+  background: #f1f5f9;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-close-btn:hover {
+  background: #e2e8f0;
+  color: var(--text-primary);
+}
+
+.shipment-modal-body {
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+/* Stepper Corridor Progress */
+.shipment-progress-stepper-card {
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  position: relative;
+}
+
+.stepper-track-line {
+  position: absolute;
+  top: 36px;
+  left: 60px;
+  right: 60px;
+  height: 4px;
+  background: #e2e8f0;
+  z-index: 1;
+}
+
+.stepper-fill-line {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.stepper-nodes-row {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+.stepper-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 220px;
+}
+
+.stepper-node.current {
+  align-items: center;
+}
+
+.stepper-node.done {
+  align-items: flex-start;
+}
+
+.stepper-node.pending {
+  align-items: flex-end;
+}
+
+.node-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.pulsating-node {
+  animation: pulse-ring 1.8s infinite;
+}
+
+.node-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+}
+
+.node-type {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.node-info strong {
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+
+.node-sub {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.node-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.simulated-pill-tag {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-full);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* 4-Key Metrics Grid */
+.shipment-key-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+}
+
+.modal-metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.m-metric-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.m-metric-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.m-metric-subtext {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+/* Two-Column Split in Modal */
+.shipment-detail-split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.card-sub-block {
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.sub-block-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.spec-table {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.spec-table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.spec-table-row:last-child {
+  border-bottom: none;
+}
+
+.st-label {
+  color: var(--text-secondary);
+}
+
+.st-val {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Driver Box */
+.driver-modal-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+}
+
+.d-avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.d-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.82rem;
+}
+
+.d-details strong {
+  color: var(--text-primary);
+}
+
+.d-details span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Risk Factors List */
+.risk-factors-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.risk-factor-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.rf-bullet {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.delay-intel-box {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.delay-intel-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.delay-intel-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.delay-action-prompt {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.74rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
+
+.shipment-modal-card .modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  background: #ffffff;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (DESKTOP / TABLET / MOBILE)
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .tracking-main-layout {
+    grid-template-columns: 300px 1fr;
+  }
+  .tracking-right-panel {
+    grid-column: span 2;
+  }
+  .shipment-key-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .mobile-view-toggle {
+    display: flex;
+  }
+  .tracking-main-layout {
+    grid-template-columns: 1fr;
+  }
+  .tracking-right-panel {
+    grid-column: 1;
+  }
+  .mobile-hide {
+    display: none !important;
+  }
+  .mobile-show {
+    display: flex !important;
+  }
+  .shipment-detail-split-row {
+    grid-template-columns: 1fr;
+  }
+  .stepper-track-line {
+    display: none;
+  }
+  .stepper-nodes-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .stepper-node {
+    max-width: 100%;
+    align-items: flex-start !important;
+  }
+  .stepper-node .node-info {
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .control-bar-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tracking-search-box {
+    max-width: 100%;
+  }
+  .tracking-filters-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .shipment-key-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   AI MODEL INTELLIGENCE & REALTIME TELEMETRY BAR
+   ========================================================================== */
+.ai-model-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.92));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1.25rem;
+  color: #f8fafc;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3), 0 0 20px -5px rgba(59, 130, 246, 0.2);
+  flex-wrap: wrap;
+}
+
+.ai-status-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ai-chip-pulsing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(96, 165, 250, 0.5);
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #93c5fd;
+  letter-spacing: 0.02em;
+}
+
+.ai-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
+  animation: pulse-ring 1.8s infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+.ai-stat-pill {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ai-stat-pill strong {
+  color: #ffffff;
+}
+
+.ai-status-right {
+  display: flex;
+  align-items: center;
+}
+
+.telemetry-stream-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.telemetry-stream-pill.connected {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #34d399;
+}
+
+.telemetry-stream-pill.simulated {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+}
+
+.pulse-ping {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* AI Model Intelligence card in modal */
+.ai-modal-intelligence-banner {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.06), rgba(59, 130, 246, 0.08));
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  margin-top: 0.85rem;
+}
+
+.ai-banner-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 0.5rem;
+}
+
+.ai-metrics-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.5rem;
+  font-size: 0.76rem;
+}
+
+.ai-mini-stat {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.ai-mini-stat span {
+  color: var(--text-muted);
+}
+
+.ai-mini-stat strong {
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
